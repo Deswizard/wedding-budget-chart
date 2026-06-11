@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Budget Chart</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #ffffff; color: #1a1a1a; padding: 1.5rem; }
+  h1 { font-size: 16px; font-weight: 500; color: #444; margin-bottom: 1.25rem; text-align: center; letter-spacing: 0.02em; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
+  .cat-row { display: flex; align-items: center; gap: 8px; background: #f7f7f7; border-radius: 8px; padding: 7px 10px; }
+  .cat-swatch { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+  .cat-label { font-size: 11px; color: #666; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat-input { width: 68px; font-size: 11px; text-align: right; background: transparent; border: none; border-bottom: 0.5px solid #ccc; color: #1a1a1a; padding: 0 2px; outline: none; }
+  .cat-input:focus { border-bottom-color: #534AB7; }
+  .total-box { text-align: center; margin-bottom: 1rem; }
+  .total-label { font-size: 11px; color: #888; margin-bottom: 2px; }
+  .total-val { font-size: 22px; font-weight: 500; color: #1a1a1a; }
+  .chart-container { position: relative; width: 100%; max-width: 320px; height: 320px; margin: 0 auto 1rem; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 0.75rem; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  .note { text-align: center; font-size: 10px; color: #aaa; margin-top: 1rem; }
+  @media (max-width: 480px) { .controls { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-new-gr-c-s-check-loaded="8.936.0" data-gr-ext-installed="">
+
+<h1>Wedding Budget Breakdown</h1>
+
+<div class="controls" id="controls"><div class="cat-row">
+    <span class="cat-swatch" style="background:#534AB7"></span>
+    <span class="cat-label" title="Ceremony venue">Ceremony venue</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Ceremony venue budget amount" id="inp-0">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#185FA5"></span>
+    <span class="cat-label" title="Reception venue">Reception venue</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Reception venue budget amount" id="inp-1">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#D85A30"></span>
+    <span class="cat-label" title="Catering">Catering</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Catering budget amount" id="inp-2">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#1D9E75"></span>
+    <span class="cat-label" title="Photography">Photography</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Photography budget amount" id="inp-3">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#0F6E56"></span>
+    <span class="cat-label" title="Videography">Videography</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Videography budget amount" id="inp-4">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#639922"></span>
+    <span class="cat-label" title="Florals &amp; decor">Florals &amp; decor</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Florals &amp; decor budget amount" id="inp-5">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#BA7517"></span>
+    <span class="cat-label" title="DJ / band">DJ / band</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="DJ / band budget amount" id="inp-6">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#D4537E"></span>
+    <span class="cat-label" title="Hair &amp; makeup">Hair &amp; makeup</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Hair &amp; makeup budget amount" id="inp-7">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#993556"></span>
+    <span class="cat-label" title="Attire &amp; rings">Attire &amp; rings</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Attire &amp; rings budget amount" id="inp-8">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#888780"></span>
+    <span class="cat-label" title="Transportation">Transportation</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Transportation budget amount" id="inp-9">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#EF9F27"></span>
+    <span class="cat-label" title="Cake">Cake</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Cake budget amount" id="inp-10">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#378ADD"></span>
+    <span class="cat-label" title="Stationery">Stationery</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Stationery budget amount" id="inp-11">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#5DCAA5"></span>
+    <span class="cat-label" title="Rentals">Rentals</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Rentals budget amount" id="inp-12">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#7F77DD"></span>
+    <span class="cat-label" title="Honeymoon">Honeymoon</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Honeymoon budget amount" id="inp-13">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#AFA9EC"></span>
+    <span class="cat-label" title="Rehearsal dinner">Rehearsal dinner</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Rehearsal dinner budget amount" id="inp-14">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#F0997B"></span>
+    <span class="cat-label" title="Bachelor / bachelorette">Bachelor / bachelorette</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Bachelor / bachelorette budget amount" id="inp-15">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#ED93B1"></span>
+    <span class="cat-label" title="Bridal party gifts">Bridal party gifts</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Bridal party gifts budget amount" id="inp-16">
+  </div><div class="cat-row">
+    <span class="cat-swatch" style="background:#B4B2A9"></span>
+    <span class="cat-label" title="Miscellaneous">Miscellaneous</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="Miscellaneous budget amount" id="inp-17">
+  </div></div>
+
+<div class="total-box">
+  <div class="total-label">total budget</div>
+  <div class="total-val" id="total-val">$0</div>
+</div>
+
+<div class="chart-container">
+  <canvas id="donut" role="img" aria-label="Donut chart showing wedding budget breakdown by category" style="display: block; box-sizing: border-box; height: 320px; width: 320px;" width="320" height="320">Enter amounts in each category to see your budget distribution.</canvas>
+</div>
+
+<div class="legend" id="legend"><div class="legend-item"><span class="legend-dot" style="background:#534AB7"></span>Ceremony venue</div><div class="legend-item"><span class="legend-dot" style="background:#185FA5"></span>Reception venue</div><div class="legend-item"><span class="legend-dot" style="background:#D85A30"></span>Catering</div><div class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>Photography</div><div class="legend-item"><span class="legend-dot" style="background:#0F6E56"></span>Videography</div><div class="legend-item"><span class="legend-dot" style="background:#639922"></span>Florals &amp; decor</div><div class="legend-item"><span class="legend-dot" style="background:#BA7517"></span>DJ / band</div><div class="legend-item"><span class="legend-dot" style="background:#D4537E"></span>Hair &amp; makeup</div><div class="legend-item"><span class="legend-dot" style="background:#993556"></span>Attire &amp; rings</div><div class="legend-item"><span class="legend-dot" style="background:#888780"></span>Transportation</div><div class="legend-item"><span class="legend-dot" style="background:#EF9F27"></span>Cake</div><div class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>Stationery</div><div class="legend-item"><span class="legend-dot" style="background:#5DCAA5"></span>Rentals</div><div class="legend-item"><span class="legend-dot" style="background:#7F77DD"></span>Honeymoon</div><div class="legend-item"><span class="legend-dot" style="background:#AFA9EC"></span>Rehearsal dinner</div><div class="legend-item"><span class="legend-dot" style="background:#F0997B"></span>Bachelor / bachelorette</div><div class="legend-item"><span class="legend-dot" style="background:#ED93B1"></span>Bridal party gifts</div><div class="legend-item"><span class="legend-dot" style="background:#B4B2A9"></span>Miscellaneous</div></div>
+
+<p class="note">Enter your amounts above — the chart updates automatically.</p>
+
+<script src="Wedding%20Budget%20Chart_files/chart.umd.js"></script>
+<script>
+const CATS = [
+  { label: 'Ceremony venue',            color: '#534AB7' },
+  { label: 'Reception venue',           color: '#185FA5' },
+  { label: 'Catering',                  color: '#D85A30' },
+  { label: 'Photography',               color: '#1D9E75' },
+  { label: 'Videography',               color: '#0F6E56' },
+  { label: 'Florals & decor',           color: '#639922' },
+  { label: 'DJ / band',                 color: '#BA7517' },
+  { label: 'Hair & makeup',             color: '#D4537E' },
+  { label: 'Attire & rings',            color: '#993556' },
+  { label: 'Transportation',            color: '#888780' },
+  { label: 'Cake',                      color: '#EF9F27' },
+  { label: 'Stationery',                color: '#378ADD' },
+  { label: 'Rentals',                   color: '#5DCAA5' },
+  { label: 'Honeymoon',                 color: '#7F77DD' },
+  { label: 'Rehearsal dinner',          color: '#AFA9EC' },
+  { label: 'Bachelor / bachelorette',   color: '#F0997B' },
+  { label: 'Bridal party gifts',        color: '#ED93B1' },
+  { label: 'Miscellaneous',             color: '#B4B2A9' },
+];
+
+const values = new Array(CATS.length).fill(0);
+
+const controlsEl = document.getElementById('controls');
+CATS.forEach((cat, i) => {
+  const row = document.createElement('div');
+  row.className = 'cat-row';
+  row.innerHTML = `
+    <span class="cat-swatch" style="background:${cat.color}"></span>
+    <span class="cat-label" title="${cat.label}">${cat.label}</span>
+    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="${cat.label} budget amount" id="inp-${i}">
+  `;
+  controlsEl.appendChild(row);
+  row.querySelector(`#inp-${i}`).addEventListener('input', e => {
+    values[i] = parseFloat(e.target.value) || 0;
+    update();
+  });
+});
+
+const legendEl = document.getElementById('legend');
+CATS.forEach(cat => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  item.innerHTML = `<span class="legend-dot" style="background:${cat.color}"></span>${cat.label}`;
+  legendEl.appendChild(item);
+});
+
+const ctx = document.getElementById('donut').getContext('2d');
+const chart = new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: CATS.map(c => c.label),
+    datasets: [{
+      data: new Array(CATS.length).fill(1),
+      backgroundColor: CATS.map(c => c.color + '33'),
+      borderWidth: 2,
+      borderColor: '#ffffff',
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const total = values.reduce((a, b) => a + b, 0);
+            if (total === 0) return ` ${ctx.label}: $0 (0%)`;
+            const pct = Math.round((values[ctx.dataIndex] / total) * 100);
+            return ` ${ctx.label}: $${values[ctx.dataIndex].toLocaleString()} (${pct}%)`;
+          }
+        }
+      }
+    }
+  }
+});
+
+function update() {
+  const total = values.reduce((a, b) => a + b, 0);
+  document.getElementById('total-val').textContent = '$' + Math.round(total).toLocaleString();
+  const hasData = total > 0;
+  chart.data.datasets[0].data = hasData ? values : new Array(CATS.length).fill(1);
+  chart.data.datasets[0].backgroundColor = hasData
+    ? CATS.map(c => c.color)
+    : CATS.map(c => c.color + '33');
+  chart.update();
+}
+</script>
+
+
+<simplycodes-ui style="z-index: calc(3.40282e38); overflow: visible; position: relative; width: 0px; height: 0px; display: block; pointer-events: none; opacity: 0;" id="SCExtension-026e4e"><style>@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Regular.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:normal;font-weight:400}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Italic.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:italic;font-weight:400}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Medium.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:normal;font-weight:500}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-MediumItalic.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:italic;font-weight:500}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Bold.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:normal;font-weight:700}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-BoldItalic.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:italic;font-weight:700}@font-face{font-family:degular;src:url(https://images.simplycodes.com/fonts/degular/Degular-Bold.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:700}@font-face{font-family:neue-haas-grotesk;src:url(https://images.simplycodes.com/fonts/neue-haas-grotesk/NHaasGroteskDSPro-55Rg.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:400}@font-face{font-family:neue-haas-grotesk;src:url(https://images.simplycodes.com/fonts/neue-haas-grotesk/NHaasGroteskDSPro-65Md.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:500}@font-face{font-family:neue-haas-grotesk;src:url(https://images.simplycodes.com/fonts/neue-haas-grotesk/NHaasGroteskDSPro-75Bd.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:700}[id^=SCExtension]{all:initial;z-index:calc(Infinity);transition-property:opacity;transition-duration:.25s;position:absolute}</style></simplycodes-ui></body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>
