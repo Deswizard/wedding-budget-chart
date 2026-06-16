@@ -29,9 +29,16 @@
     margin: 10px 0 20px;
   }
 
+  .chart-box {
+    width: 320px;
+    height: 320px;
+    margin: 0 auto;
+  }
+
   canvas {
-    height: 300px;
-    width: 100%;
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
   }
 
   button {
@@ -58,7 +65,9 @@
 
   <div id="total">$0</div>
 
-  <canvas id="chart"></canvas>
+  <div class="chart-box">
+    <canvas id="chart"></canvas>
+  </div>
 
   <div class="note">
     Estimated costs for planning purposes only.
@@ -69,7 +78,7 @@
 let chart;
 
 function initChart() {
-  const ctx = document.getElementById("chart");
+  const ctx = document.getElementById("chart").getContext("2d");
 
   chart = new Chart(ctx, {
     type: "doughnut",
@@ -77,13 +86,14 @@ function initChart() {
       labels: ["Loading"],
       datasets: [{
         data: [1],
-        backgroundColor: ["#ddd"]
+        backgroundColor: ["#ddd"],
+        borderWidth: 0
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "62%",
+      animation: false,
       plugins: {
         legend: { display: false }
       }
@@ -92,7 +102,8 @@ function initChart() {
 }
 
 function render(data) {
-  const totals = data?.totals || {};
+  const totals = (data && data.totals) ? data.totals : {};
+
   const categories = Object.keys(totals);
   const values = categories.map(c => totals[c]);
 
@@ -101,14 +112,12 @@ function render(data) {
     chart.data.datasets[0].data = [1];
     chart.data.datasets[0].backgroundColor = ["#ddd"];
     chart.update();
-
     document.getElementById("total").innerText = "$0";
     return;
   }
 
   chart.data.labels = categories;
   chart.data.datasets[0].data = values;
-
   chart.data.datasets[0].backgroundColor = categories.map(
     (_, i) => `hsl(${i * 35}, 70%, 60%)`
   );
@@ -125,14 +134,8 @@ async function loadData() {
     const res = await fetch("/api/get-budget?t=" + Date.now());
     const data = await res.json();
     render(data);
-  } catch (err) {
-    console.error(err);
-
-    chart.data.labels = ["Error"];
-    chart.data.datasets[0].data = [1];
-    chart.data.datasets[0].backgroundColor = ["#ccc"];
-    chart.update();
-
+  } catch (e) {
+    console.error(e);
     document.getElementById("total").innerText = "$0";
   }
 }
