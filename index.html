@@ -53,60 +53,51 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const CATS = [
-  { label: 'Ceremony Venue',            color: '#534AB7' },
-  { label: 'Reception Venue',           color: '#185FA5' },
-  { label: 'Catering',                  color: '#D85A30' },
-  { label: 'Photography',               color: '#1D9E75' },
-  { label: 'Videography',               color: '#0F6E56' },
-  { label: 'Florals & Decor',           color: '#639922' },
-  { label: 'DJ / Band',                 color: '#BA7517' },
-  { label: 'Hair & Makeup',             color: '#D4537E' },
-  { label: 'Attire & Rings',            color: '#993556' },
-  { label: 'Transportation',            color: '#888780' },
-  { label: 'Cake',                      color: '#EF9F27' },
-  { label: 'Stationery',                color: '#378ADD' },
-  { label: 'Rentals',                   color: '#5DCAA5' },
-  { label: 'Honeymoon',                 color: '#7F77DD' },
-  { label: 'Rehearsal Dinner',          color: '#AFA9EC' },
-  { label: 'Bachelor / Bachelorette',   color: '#F0997B' },
-  { label: 'Bridal Party Gifts',        color: '#ED93B1' },
-  { label: 'Miscellaneous',             color: '#B4B2A9' },
+  'Ceremony Venue',
+  'Reception Venue',
+  'Catering',
+  'Photography',
+  'Videography',
+  'Florals & Decor',
+  'DJ / Band',
+  'Hair & Makeup',
+  'Attire & Rings',
+  'Transportation',
+  'Cake',
+  'Stationery',
+  'Rentals',
+  'Honeymoon',
+  'Rehearsal Dinner',
+  'Bachelor / Bachelorette',
+  'Bridal Party Gifts',
+  'Miscellaneous'
 ];
 
-const values = new Array(CATS.length).fill(0);
+let values = new Array(CATS.length).fill(0);
 
-const controlsEl = document.getElementById('controls');
-CATS.forEach((cat, i) => {
-  const row = document.createElement('div');
-  row.className = 'cat-row';
-  row.innerHTML = `
-    <span class="cat-swatch" style="background:${cat.color}"></span>
-    <span class="cat-label" title="${cat.label}">${cat.label}</span>
-    <input class="cat-input" type="number" min="0" step="100" placeholder="0" aria-label="${cat.label} budget amount" id="inp-${i}">
-  `;
-  controlsEl.appendChild(row);
-  row.querySelector(`#inp-${i}`).addEventListener('input', e => {
-    values[i] = parseFloat(e.target.value) || 0;
-    update();
-  });
-});
+const colors = [
+  '#534AB7','#185FA5','#D85A30','#1D9E75','#0F6E56','#639922',
+  '#BA7517','#D4537E','#993556','#888780','#EF9F27','#378ADD',
+  '#5DCAA5','#7F77DD','#AFA9EC','#F0997B','#ED93B1','#B4B2A9'
+];
 
-const legendEl = document.getElementById('legend');
-CATS.forEach(cat => {
-  const item = document.createElement('div');
-  item.className = 'legend-item';
-  item.innerHTML = `<span class="legend-dot" style="background:${cat.color}"></span>${cat.label}`;
-  legendEl.appendChild(item);
-});
+// TOTAL DISPLAY
+function updateTotal() {
+  const total = values.reduce((a,b)=>a+b,0);
+  document.getElementById('total-val').textContent =
+    '$' + Math.round(total).toLocaleString();
+}
 
+// CHART
 const ctx = document.getElementById('donut').getContext('2d');
+
 const chart = new Chart(ctx, {
   type: 'doughnut',
   data: {
-    labels: CATS.map(c => c.label),
+    labels: CATS,
     datasets: [{
-      data: new Array(CATS.length).fill(1),
-      backgroundColor: CATS.map(c => c.color + '33'),
+      data: values,
+      backgroundColor: colors,
       borderWidth: 2,
       borderColor: '#ffffff',
       hoverOffset: 8,
@@ -117,31 +108,54 @@ const chart = new Chart(ctx, {
     maintainAspectRatio: false,
     cutout: '62%',
     plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => {
-            const total = values.reduce((a, b) => a + b, 0);
-            if (total === 0) return ` ${ctx.label}: $0 (0%)`;
-            const pct = Math.round((values[ctx.dataIndex] / total) * 100);
-            return ` ${ctx.label}: $${values[ctx.dataIndex].toLocaleString()} (${pct}%)`;
-          }
-        }
-      }
+      legend: { display: false }
     }
   }
 });
 
-function update() {
-  const total = values.reduce((a, b) => a + b, 0);
-  document.getElementById('total-val').textContent = '$' + Math.round(total).toLocaleString();
-  const hasData = total > 0;
-  chart.data.datasets[0].data = hasData ? values : new Array(CATS.length).fill(1);
-  chart.data.datasets[0].backgroundColor = hasData
-    ? CATS.map(c => c.color)
-    : CATS.map(c => c.color + '33');
-  chart.update();
+// FETCH FROM NOTION API
+async function loadData() {
+  try {
+    const res = await fetch('/api/get-budget?t=' + Date.now());
+    const data = await res.json();
+
+    const totals = data.totals || {};
+
+    values = CATS.map(cat => totals[cat] || 0);
+
+    chart.data.datasets[0].data = values;
+    chart.update();
+
+    updateTotal();
+
+  } catch (err) {
+    console.error('Failed to load budget:', err);
+  }
 }
+
+// REFRESH BUTTON
+function createRefreshButton() {
+  const btn = document.createElement('button');
+  btn.innerText = 'Refresh from Notion';
+  btn.style = `
+    display:block;
+    margin: 10px auto 20px;
+    padding: 6px 10px;
+    font-size: 11px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+  `;
+
+  btn.onclick = loadData;
+
+  document.body.insertBefore(btn, document.body.children[1]);
+}
+
+// INIT
+createRefreshButton();
+loadData();
 </script>
 </body>
 </html>
