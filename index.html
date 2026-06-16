@@ -10,6 +10,131 @@
 <style>
   body {
     font-family: Arial;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .wrap {
+    max-width: 420px;
+    margin: auto;
+  }
+
+  #total {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  .chart {
+    width: 320px;
+    height: 320px;
+    margin: auto;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  button {
+    margin-bottom: 10px;
+  }
+
+  .note {
+    font-size: 12px;
+    color: #777;
+    margin-top: 10px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+  <h2>Wedding Budget Breakdown</h2>
+
+  <button onclick="load()">Refresh</button>
+
+  <div id="total">$0</div>
+
+  <div class="chart">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div class="note">
+    Estimated costs for planning purposes only.
+  </div>
+</div>
+
+<script>
+let chart;
+
+function init() {
+  const ctx = document.getElementById("chart");
+
+  chart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        backgroundColor: []
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false
+    }
+  });
+}
+
+async function load() {
+  const res = await fetch("/api/get-budget?t=" + Date.now());
+  const data = await res.json();
+
+  const totals = data.totals || {};
+
+  const labels = Object.keys(totals);
+  const values = Object.values(totals);
+
+  if (!labels.length) {
+    document.getElementById("total").innerText = "$0";
+    return;
+  }
+
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = values;
+
+  chart.data.datasets[0].backgroundColor = labels.map(
+    (_, i) => `hsl(${i * 40}, 70%, 60%)`
+  );
+
+  chart.update();
+
+  const sum = values.reduce((a, b) => a + b, 0);
+  document.getElementById("total").innerText =
+    "$" + sum.toLocaleString();
+}
+
+window.onload = () => {
+  init();
+  load();
+};
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Budget</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<style>
+  body {
+    font-family: Arial;
     padding: 20px;
     text-align: center;
   }
