@@ -3,55 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wedding Budget Dashboard</title>
+<title>Wedding Budget</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
 <style>
   body {
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     padding: 20px;
     text-align: center;
   }
 
   .wrap {
     max-width: 420px;
-    margin: 0 auto;
-  }
-
-  h1 {
-    font-size: 18px;
-    margin-bottom: 10px;
+    margin: auto;
   }
 
   #total {
     font-size: 22px;
-    margin: 10px 0 20px;
+    margin: 10px 0;
   }
 
-  .chart-box {
+  .chart {
     width: 320px;
     height: 320px;
-    margin: 0 auto;
+    margin: auto;
   }
 
   canvas {
     width: 100% !important;
     height: 100% !important;
-    display: block;
   }
 
   button {
-    margin-bottom: 15px;
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
+    margin-bottom: 10px;
   }
 
   .note {
-    font-size: 11px;
+    font-size: 12px;
     color: #888;
-    margin-top: 15px;
+    margin-top: 10px;
   }
 </style>
 </head>
@@ -59,13 +50,13 @@
 <body>
 
 <div class="wrap">
-  <h1>Wedding Budget Breakdown</h1>
+  <h2>Wedding Budget Breakdown</h2>
 
-  <button onclick="loadData()">Refresh from Notion</button>
+  <button onclick="loadData()">Refresh</button>
 
   <div id="total">$0</div>
 
-  <div class="chart-box">
+  <div class="chart">
     <canvas id="chart"></canvas>
   </div>
 
@@ -77,73 +68,58 @@
 <script>
 let chart;
 
-function initChart() {
-  const ctx = document.getElementById("chart").getContext("2d");
+function init() {
+  const ctx = document.getElementById("chart");
 
   chart = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Loading"],
+      labels: [],
       datasets: [{
-        data: [1],
-        backgroundColor: ["#ddd"],
-        borderWidth: 0
+        data: [],
+        backgroundColor: []
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: false,
-      plugins: {
-        legend: { display: false }
-      }
+      animation: false
     }
   });
 }
 
-function render(data) {
-  const totals = (data && data.totals) ? data.totals : {};
+async function loadData() {
+  const res = await fetch("/api/get-budget?t=" + Date.now());
+  const data = await res.json();
 
-  const categories = Object.keys(totals);
-  const values = categories.map(c => totals[c]);
+  const totals = data.totals || {};
 
-  if (categories.length === 0) {
-    chart.data.labels = ["No Data"];
-    chart.data.datasets[0].data = [1];
-    chart.data.datasets[0].backgroundColor = ["#ddd"];
-    chart.update();
+  const labels = Object.keys(totals);
+  const values = Object.values(totals);
+
+  if (!labels.length) {
     document.getElementById("total").innerText = "$0";
     return;
   }
 
-  chart.data.labels = categories;
+  chart.data.labels = labels;
   chart.data.datasets[0].data = values;
-  chart.data.datasets[0].backgroundColor = categories.map(
-    (_, i) => `hsl(${i * 35}, 70%, 60%)`
+
+  chart.data.datasets[0].backgroundColor = labels.map(
+    (_, i) => `hsl(${i * 40}, 70%, 60%)`
   );
 
   chart.update();
 
-  const total = values.reduce((a, b) => a + b, 0);
+  const sum = values.reduce((a, b) => a + b, 0);
   document.getElementById("total").innerText =
-    "$" + Math.round(total).toLocaleString();
+    "$" + sum.toLocaleString();
 }
 
-async function loadData() {
-  try {
-    const res = await fetch("/api/get-budget?t=" + Date.now());
-    const data = await res.json();
-    render(data);
-  } catch (e) {
-    console.error(e);
-    document.getElementById("total").innerText = "$0";
-  }
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  initChart();
+window.onload = () => {
+  init();
   loadData();
-});
+};
 </script>
 
 </body>
