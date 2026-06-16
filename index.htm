@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wedding Budget Chart</title>
@@ -88,12 +88,11 @@
 
   .donut {
     display: block;
-    width: 100% !important;
-    height: 100% !important;
+    width: 100%;
+    height: 100%;
   }
 
   .donut-segment {
-    cursor: default;
     fill: none;
     stroke-linecap: butt;
     transform-origin: 160px 160px;
@@ -201,7 +200,8 @@
   }
 </style>
 </head>
-<body data-new-gr-c-s-check-loaded="8.937.0" data-gr-ext-installed="">
+
+<body>
   <main class="wrap">
     <p class="eyebrow">Budget Overview</p>
     <h1>Wedding Budget Breakdown</h1>
@@ -217,7 +217,7 @@
       </svg>
     </div>
 
-    <div class="status" id="status">Could not load budget.</div>
+    <div class="status" id="status">Loading budget...</div>
     <section class="breakdown" id="breakdown" aria-label="Budget categories"></section>
 
     <button class="refresh" type="button" onclick="loadData()">Refresh</button>
@@ -262,6 +262,22 @@ function colorFor(label, index) {
   return PALETTE[label] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
 }
 
+function renderRows(items) {
+  const breakdown = document.getElementById("breakdown");
+  breakdown.innerHTML = "";
+
+  items.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "cat-row";
+    row.innerHTML = `
+      <span class="cat-swatch" style="background:${item.color}"></span>
+      <span class="cat-label" title="${item.label}">${item.label}</span>
+      <span class="cat-value">${money(item.value)}</span>
+    `;
+    breakdown.appendChild(row);
+  });
+}
+
 function renderDonut(items, total) {
   const svg = document.getElementById("donut");
   svg.innerHTML = "";
@@ -277,6 +293,7 @@ function renderDonut(items, total) {
 
   items.forEach(item => {
     const length = (item.value / total) * circumference;
+
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("class", "donut-segment");
     circle.setAttribute("cx", "160");
@@ -294,22 +311,6 @@ function renderDonut(items, total) {
 
     svg.appendChild(circle);
     offset += length;
-  });
-}
-
-function renderRows(items) {
-  const breakdown = document.getElementById("breakdown");
-  breakdown.innerHTML = "";
-
-  items.forEach((item, index) => {
-    const row = document.createElement("div");
-    row.className = "cat-row";
-    row.innerHTML = `
-      <span class="cat-swatch" style="background:${item.color}"></span>
-      <span class="cat-label" title="${item.label}">${item.label}</span>
-      <span class="cat-value">${money(item.value)}</span>
-    `;
-    breakdown.appendChild(row);
   });
 }
 
@@ -360,6 +361,5 @@ window.addEventListener("load", () => {
   loadData();
 });
 </script>
-
-
-<simplycodes-ui style="z-index: calc(3.40282e38); overflow: visible; position: relative; width: 0px; height: 0px; display: block; pointer-events: none; opacity: 0;" id="SCExtension-2fdd00"><style>@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Regular.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:normal;font-weight:400}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Italic.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:italic;font-weight:400}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Medium.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:normal;font-weight:500}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-MediumItalic.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:italic;font-weight:500}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-Bold.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:normal;font-weight:700}@font-face{font-family:simply-circular;src:url(https://images.simplycodes.com/fonts/simply-circular/CircularXXWeb-BoldItalic.woff2)format("woff2");font-display:swap;font-feature-settings:"'ss08'on";font-style:italic;font-weight:700}@font-face{font-family:degular;src:url(https://images.simplycodes.com/fonts/degular/Degular-Bold.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:700}@font-face{font-family:neue-haas-grotesk;src:url(https://images.simplycodes.com/fonts/neue-haas-grotesk/NHaasGroteskDSPro-55Rg.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:400}@font-face{font-family:neue-haas-grotesk;src:url(https://images.simplycodes.com/fonts/neue-haas-grotesk/NHaasGroteskDSPro-65Md.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:500}@font-face{font-family:neue-haas-grotesk;src:url(https://images.simplycodes.com/fonts/neue-haas-grotesk/NHaasGroteskDSPro-75Bd.woff2)format("woff2");font-display:swap;font-style:normal;font-weight:700}[id^=SCExtension]{all:initial;z-index:calc(Infinity);transition-property:opacity;transition-duration:.25s;position:absolute}</style></simplycodes-ui></body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>
+</body>
+</html>
