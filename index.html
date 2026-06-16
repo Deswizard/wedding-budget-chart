@@ -4,164 +4,149 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wedding Budget Chart - Arken Templates</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #ffffff; color: #1a1a1a; padding: 1.5rem; }
-  h1 { font-size: 16px; font-weight: 500; color: #444; margin-bottom: 1.25rem; text-align: center; letter-spacing: 0.02em; }
-  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
-  .cat-row { display: flex; align-items: center; gap: 8px; background: #f7f7f7; border-radius: 8px; padding: 7px 10px; }
-  .cat-swatch { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
-  .cat-label { font-size: 11px; color: #666; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .cat-input { width: 68px; font-size: 11px; text-align: right; background: transparent; border: none; border-bottom: 0.5px solid #ccc; color: #1a1a1a; padding: 0 2px; outline: none; }
-  .cat-input:focus { border-bottom-color: #534AB7; }
-  .total-box { text-align: center; margin-bottom: 1rem; }
-  .total-label { font-size: 11px; color: #888; margin-bottom: 2px; }
-  .total-val { font-size: 22px; font-weight: 500; color: #1a1a1a; }
-  .chart-container { position: relative; width: 100%; max-width: 320px; height: 320px; margin: 0 auto 1rem; }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 0.75rem; }
-  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; }
-  .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
-  .note { text-align: center; font-size: 10px; color: #aaa; margin-top: 1rem; }
-  @media (max-width: 480px) { .controls { grid-template-columns: 1fr; } }
-</style>
-</head>
- <footer style="text-align:center;margin-top:2rem;padding:1rem 0;border-top:1px solid #eee;">
-  <p style="font-size:11px;color:#aaa;letter-spacing:0.05em;">
-    ARKEN TEMPLATES &nbsp;&nbsp;|&nbsp;&nbsp; 
-    <span style="font-style:italic;">For personal use only. Not for resale or redistribution.</span>
-  </p>
-</footer>
-<body>
-
-<h1>Wedding Budget Breakdown</h1>
-
-<div class="controls" id="controls"></div>
-
-<div class="total-box">
-  <div class="total-label">Total Budget</div>
-  <div class="total-val" id="total-val">$0</div>
-</div>
-
-<div class="chart-container">
-  <canvas id="donut" role="img" aria-label="Donut chart showing wedding budget breakdown by category">Enter amounts in each category to see your budget distribution.</canvas>
-</div>
-
-<div class="legend" id="legend"></div>
-
-<p class="note">Enter your amounts above. The chart updates automatically.</p>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
-const CATS = [
-  'Ceremony Venue',
-  'Reception Venue',
-  'Catering',
-  'Photography',
-  'Videography',
-  'Florals & Decor',
-  'Bridal Party Gifts',
-  'DJ / Band / Music',
-  'Hair & Makeup',
-  'Officiant',
-  'Transportation',
-  'Cake',
-  'Stationery & Invitations',
-  'Rentals',
-  'Lighting',
-  'Attire',
-  'Rings',
-  'Rehearsal Dinner',
-  'Bachelor Party',
-  'Bachelorette Party',
-  'Day-After Brunch',
-  'Honeymoon',
-  'Gifts & Favors',
-  'Miscellaneous'
-];
 
-let values = new Array(CATS.length).fill(0);
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-const colors = [
-  '#534AB7','#185FA5','#D85A30','#1D9E75','#0F6E56','#639922',
-  '#BA7517','#D4537E','#993556','#888780','#EF9F27','#378ADD',
-  '#5DCAA5','#7F77DD','#AFA9EC','#F0997B','#ED93B1','#B4B2A9'
-];
-
-// TOTAL DISPLAY
-function updateTotal() {
-  const total = values.reduce((a,b)=>a+b,0);
-  document.getElementById('total-val').textContent =
-    '$' + Math.round(total).toLocaleString();
-}
-
-// CHART
-const ctx = document.getElementById('donut').getContext('2d');
-
-const chart = new Chart(ctx, {
-  type: 'doughnut',
-  data: {
-    labels: CATS,
-    datasets: [{
-      data: values,
-      backgroundColor: colors,
-      borderWidth: 2,
-      borderColor: '#ffffff',
-      hoverOffset: 8,
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '62%',
-    plugins: {
-      legend: { display: false }
-    }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #fff;
+    color: #1a1a1a;
+    padding: 1.5rem;
   }
-});
 
-// FETCH FROM NOTION API
-async function loadData() {
-  try {
-    const res = await fetch('/api/get-budget?t=' + Date.now());
-    const data = await res.json();
-
-    const totals = data.totals || {};
-
-    values = CATS.map(cat => totals[cat] || 0);
-
-    chart.data.datasets[0].data = values;
-    chart.update();
-
-    updateTotal();
-
-  } catch (err) {
-    console.error('Failed to load budget:', err);
+  h1 {
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #444;
   }
-}
 
-// REFRESH BUTTON
-function createRefreshButton() {
-  const btn = document.createElement('button');
-  btn.innerText = 'Refresh from Notion';
-  btn.style = `
-    display:block;
-    margin: 10px auto 20px;
+  .btn {
+    display: block;
+    margin: 0 auto 1rem;
     padding: 6px 10px;
     font-size: 11px;
     border: 1px solid #ddd;
     border-radius: 6px;
-    background: white;
+    background: #fff;
     cursor: pointer;
-  `;
+  }
 
-  btn.onclick = loadData;
+  .total-box {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 
-  document.body.insertBefore(btn, document.body.children[1]);
+  .total-label {
+    font-size: 11px;
+    color: #888;
+  }
+
+  .total-val {
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  .chart-container {
+    width: 100%;
+    max-width: 320px;
+    height: 320px;
+    margin: 0 auto;
+  }
+
+  .note {
+    text-align: center;
+    font-size: 10px;
+    color: #aaa;
+    margin-top: 1rem;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Wedding Budget Breakdown</h1>
+
+<button class="btn" onclick="loadData()">Refresh from Notion</button>
+
+<div class="total-box">
+  <div class="total-label">Total Budget (Estimated)</div>
+  <div class="total-val" id="total-val">$0</div>
+</div>
+
+<div class="chart-container">
+  <canvas id="donut"></canvas>
+</div>
+
+<p class="note">
+  This tracks estimated costs for planning purposes, not actual spending.
+</p>
+
+<script>
+let chart;
+
+const ctx = document.getElementById('donut').getContext('2d');
+
+function initChart() {
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        backgroundColor: [],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
 }
 
-// INIT
-createRefreshButton();
+function updateChart(data) {
+  const totals = data.totals || {};
+  const categories = data.categories || Object.keys(totals);
+
+  const values = categories.map(c => totals[c] || 0);
+
+  chart.data.labels = categories;
+  chart.data.datasets[0].data = values;
+
+  chart.data.datasets[0].backgroundColor = categories.map(
+    (_, i) => `hsl(${i * 35}, 70%, 60%)`
+  );
+
+  chart.update();
+
+  const total = values.reduce((a, b) => a + b, 0);
+  document.getElementById('total-val').textContent =
+    '$' + Math.round(total).toLocaleString();
+}
+
+async function loadData() {
+  try {
+    const res = await fetch('/api/get-budget?t=' + Date.now());
+    const data = await res.json();
+    updateChart(data);
+  } catch (err) {
+    console.error('Failed to load data', err);
+  }
+}
+
+initChart();
 loadData();
 </script>
+
 </body>
 </html>
