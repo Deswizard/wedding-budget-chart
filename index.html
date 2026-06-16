@@ -78,36 +78,32 @@
   }
 
   .chart-container {
-    position: relative;
     width: min(100%, 320px);
-    min-width: 260px;
     height: 320px;
-    min-height: 260px;
     margin: 0 auto 18px;
+    padding: 8px;
   }
 
   .donut {
-    display: block;
     width: 100%;
     height: 100%;
+    border-radius: 50%;
+    background: #e6e1d8;
+    position: relative;
+    transition: transform 180ms ease, filter 180ms ease;
   }
 
-  .donut-segment {
-    fill: none;
-    stroke-linecap: butt;
-    transform-origin: 160px 160px;
-    transition: filter 180ms ease, opacity 180ms ease, stroke-width 180ms ease;
+  .donut:hover {
+    transform: scale(1.025);
+    filter: drop-shadow(0 8px 14px rgba(31, 29, 26, 0.12));
   }
 
-  .donut-segment:hover {
-    filter: drop-shadow(0 7px 12px rgba(31, 29, 26, 0.14));
-    stroke-width: 56;
-  }
-
-  .donut-empty {
-    fill: none;
-    stroke: #e6e1d8;
-    stroke-width: 50;
+  .donut::after {
+    content: "";
+    position: absolute;
+    inset: 26%;
+    border-radius: 50%;
+    background: #ffffff;
   }
 
   .status {
@@ -132,7 +128,6 @@
     gap: 9px;
     min-height: 33px;
     padding: 7px 10px;
-    border: 1px solid transparent;
     border-radius: 8px;
     background: #f7f7f5;
   }
@@ -212,9 +207,7 @@
     </section>
 
     <div class="chart-container">
-      <svg class="donut" id="donut" viewBox="0 0 320 320" role="img" aria-label="Donut chart showing wedding budget breakdown by category">
-        <circle class="donut-empty" cx="160" cy="160" r="100"></circle>
-      </svg>
+      <div class="donut" id="donut" role="img" aria-label="Donut chart showing wedding budget breakdown by category"></div>
     </div>
 
     <div class="status" id="status">Loading budget...</div>
@@ -279,39 +272,24 @@ function renderRows(items) {
 }
 
 function renderDonut(items, total) {
-  const svg = document.getElementById("donut");
-  svg.innerHTML = "";
+  const donut = document.getElementById("donut");
 
   if (!items.length || total <= 0) {
-    svg.innerHTML = '<circle class="donut-empty" cx="160" cy="160" r="100"></circle>';
+    donut.style.background = "#e6e1d8";
     return;
   }
 
-  const radius = 100;
-  const circumference = 2 * Math.PI * radius;
-  let offset = 0;
+  let angle = 0;
 
-  items.forEach(item => {
-    const length = (item.value / total) * circumference;
+  const slices = items.map(item => {
+    const start = angle;
+    const end = angle + (item.value / total) * 360;
+    angle = end;
 
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("class", "donut-segment");
-    circle.setAttribute("cx", "160");
-    circle.setAttribute("cy", "160");
-    circle.setAttribute("r", String(radius));
-    circle.setAttribute("stroke", item.color);
-    circle.setAttribute("stroke-width", "50");
-    circle.setAttribute("stroke-dasharray", length + " " + (circumference - length));
-    circle.setAttribute("stroke-dashoffset", String(-offset));
-    circle.setAttribute("transform", "rotate(-90 160 160)");
-
-    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-    title.textContent = item.label + ": " + money(item.value);
-    circle.appendChild(title);
-
-    svg.appendChild(circle);
-    offset += length;
+    return `${item.color} ${start}deg ${end}deg`;
   });
+
+  donut.style.background = `conic-gradient(${slices.join(", ")})`;
 }
 
 async function loadData() {
@@ -341,14 +319,7 @@ async function loadData() {
 
     document.getElementById("total-val").textContent = money(total);
     renderRows(items);
-
-    try {
-      renderDonut(items, total);
-    } catch (chartErr) {
-      console.error(chartErr);
-      status.textContent = "Budget loaded, but the chart could not render.";
-      return;
-    }
+    renderDonut(items, total);
 
     status.textContent = items.length ? "" : "No budget categories yet.";
   } catch (err) {
