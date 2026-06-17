@@ -82,28 +82,50 @@
     height: 320px;
     margin: 0 auto 18px;
     padding: 8px;
+    position: relative;
   }
 
-  .donut {
+  /* SVG Container */
+  #donut-svg {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    background: #e6e1d8;
-    position: relative;
-    transition: transform 180ms ease, filter 180ms ease;
+    overflow: visible; /* Prevents scaled slices from being clipped */
   }
 
-  .donut:hover {
-    transform: scale(1.025);
-    filter: drop-shadow(0 8px 14px rgba(31, 29, 26, 0.12));
+  /* Individual Slice Styling & Animation */
+  .donut-slice {
+    transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 300ms ease;
+    transform-origin: 100px 100px; /* Center of the SVG viewBox */
+    cursor: pointer;
+    outline: none;
   }
 
-  .donut::after {
-    content: "";
-    position: absolute;
-    inset: 26%;
-    border-radius: 50%;
-    background: #ffffff;
+  .donut-slice:hover {
+    transform: scale(1.06); /* Swells slightly */
+    filter: drop-shadow(0 8px 16px rgba(31, 29, 26, 0.25)) brightness(1.1);
+  }
+
+  /* Custom Tooltip Styling */
+  .tooltip {
+    position: fixed;
+    pointer-events: none; /* Allows mouse events to pass through to the slice */
+    background: rgba(26, 26, 26, 0.95);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 150ms ease;
+    transform: translate(-50%, -140%); /* Centers above the cursor */
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: inherit;
+  }
+
+  .tooltip.visible {
+    opacity: 1;
   }
 
   .status {
@@ -197,6 +219,9 @@
 </head>
 
 <body>
+  <!-- Tooltip Element -->
+  <div id="tooltip" class="tooltip"></div>
+  
   <main class="wrap">
     <p class="eyebrow">Budget Overview</p>
     <h1>Wedding Budget Breakdown</h1>
@@ -206,8 +231,9 @@
       <div class="total-val" id="total-val">$0</div>
     </section>
 
+    <!-- SVG Donut Chart -->
     <div class="chart-container">
-      <div class="donut" id="donut" role="img" aria-label="Donut chart showing wedding budget breakdown by category"></div>
+      <svg id="donut-svg" viewBox="0 0 200 200" role="img" aria-label="Donut chart showing wedding budget breakdown by category"></svg>
     </div>
 
     <div class="status" id="status">Loading budget...</div>
@@ -219,6 +245,7 @@
 
 <script>
 const API_URL = "https://wedding-budget-api.vercel.app/api/get-budget";
+const tooltip = document.getElementById("tooltip");
 
 const PALETTE = {
   "Ceremony Venue": "#534AB7",
@@ -271,25 +298,100 @@ function renderRows(items) {
   });
 }
 
-function renderDonut(items, total) {
-  const donut = document.getElementById("donut");
+// --- SVG Geometry Helpers ---
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+  return {
+    x: centerX + (radius * Math.cos(angleInRadians)),
+    y: centerY + (radius * Math.sin(angleInRadians))
+  };
+}
 
+function describeArc(x, y, outerRadius, startAngle, endAngle, innerRadius) {
+  const outerStart = polarToCartesian(x, y, outerRadius, startAngle);
+  const outerEnd = polarToCartesian(x, y, outerRadius, endAngle);
+  const innerStart = polarToCartesian(x, y, innerRadius, startAngle);
+  const innerEnd = polarToCartesian(x, y, innerRadius, endAngle);
+
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+  return [
+    "M", outerStart.x, outerStart.y,
+    "A", outerRadius, outerRadius, 0, largeArcFlag, 1, outerEnd.x, outerEnd.y,
+    "L", innerEnd.x, innerEnd.y,
+    "A", innerRadius, innerRadius, 0, largeArcFlag, 0, innerStart.x, innerStart.y,
+    "Z"
+  ].join(" ");
+}
+
+// --- Render Donut with SVG ---
+function renderDonut(items, total) {
+  const svg = document.getElementById("donut-svg");
+  svg.innerHTML = "";
+
+  // Empty state
   if (!items.length || total <= 0) {
-    donut.style.background = "#e6e1d8";
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", "100");
+    circle.setAttribute("cy", "100");
+    circle.setAttribute("r", "79");
+    circle.setAttribute("fill", "none");
+    circle.setAttribute("stroke", "#e6e1d8");
+    circle.setAttribute("stroke-width", "22");
+    svg.appendChild(circle);
     return;
   }
 
-  let angle = 0;
+  const cx = 100;
+  const cy = 100;
+  const outerR = 90;
+  const innerR = 68; // Thinner, more premium proportion
+  const isSingleItem = items.length === 1;
 
-  const slices = items.map(item => {
-    const start = angle;
-    const end = angle + (item.value / total) * 360;
-    angle = end;
+  let currentAngle = 0;
 
-    return `${item.color} ${start}deg ${end}deg`;
+  items.forEach(item => {
+    const sliceAngle = (item.value / total) * 360;
+    // Cap at 359.99 to prevent SVG rendering bugs on full 360 circles
+    const endAngle = currentAngle + (sliceAngle >= 360 ? 359.99 : sliceAngle);
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", describeArc(cx, cy, outerR, currentAngle, endAngle, innerR));
+    path.setAttribute("fill", item.color);
+    path.setAttribute("class", "donut-slice");
+    
+    // Add a subtle white gap between slices (unless it's a single 100% slice)
+    if (!isSingleItem) {
+      path.setAttribute("stroke", "#ffffff");
+      path.setAttribute("stroke-width", "1.5");
+      path.setAttribute("stroke-linejoin", "round");
+    }
+
+    // Accessibility title
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = `${item.label}: ${money(item.value)}`;
+    path.appendChild(title);
+    
+    // Tooltip Events
+    path.addEventListener("mousemove", (e) => {
+      tooltip.textContent = `${item.label}: ${money(item.value)}`;
+      tooltip.style.left = `${e.clientX}px`;
+      tooltip.style.top = `${e.clientY}px`;
+      tooltip.classList.add("visible");
+    });
+    
+    path.addEventListener("mouseleave", () => {
+      tooltip.classList.remove("visible");
+    });
+
+    // Bring hovered slice to the front so its shadow isn't hidden
+    path.addEventListener("mouseenter", () => {
+      svg.appendChild(path);
+    });
+
+    svg.appendChild(path);
+    currentAngle = endAngle;
   });
-
-  donut.style.background = `conic-gradient(${slices.join(", ")})`;
 }
 
 async function loadData() {
