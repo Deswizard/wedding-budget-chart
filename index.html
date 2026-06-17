@@ -3,6 +3,423 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wedding Budget Estimate Overview</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  :root {
+    --ink: #1a1a1a;
+    --muted: #767676;
+    --faint: #a7a7a7;
+    --line: #e9e6df;
+    --panel: #faf9f6;
+    --white: #ffffff;
+  }
+
+  body {
+    margin: 0;
+    padding: 22px;
+    background: var(--white);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0 0 18px;
+    color: #34302d;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .total-box {
+    margin-bottom: 16px;
+    padding: 13px 14px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    text-align: center;
+  }
+
+  .total-label {
+    margin-bottom: 2px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .total-val {
+    color: var(--ink);
+    font-size: 25px;
+    font-weight: 500;
+    line-height: 1.15;
+  }
+
+  .chart-container {
+    width: min(100%, 320px);
+    height: 320px;
+    margin: 0 auto 18px;
+    padding: 8px;
+    position: relative;
+  }
+
+  .status {
+    min-height: 16px;
+    margin: -4px 0 12px;
+    color: var(--faint);
+    font-size: 10px;
+    text-align: center;
+  }
+
+  /* --- UPDATED: 2-Column Grid --- */
+  .breakdown {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Forces 2 equal columns */
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+
+  /* Drops to 1 column only on very tiny screens (e.g., iPhone SE) */
+  @media (max-width: 380px) {
+    .breakdown {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cat-row {
+    display: grid;
+    grid-template-columns: 11px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-height: 33px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #f7f7f5;
+  }
+
+  .cat-swatch {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+  }
+
+  .cat-label {
+    min-width: 0;
+    overflow: hidden;
+    color: #5d5a55;
+    font-size: 11px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cat-value {
+    color: #2f2c29;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .note {
+    margin: 11px 0 0;
+    color: var(--faint);
+    font-size: 10px;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .refresh {
+    display: block;
+    margin: 12px auto 0;
+    border: 0;
+    border-bottom: 1px solid #cfcac1;
+    border-radius: 0;
+    background: transparent;
+    color: #6f6a62;
+    cursor: pointer;
+    font: inherit;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 0 0 2px;
+    text-transform: uppercase;
+  }
+
+  .refresh:hover {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+
+  /* --- NEW: Branding & Footer Styles --- */
+  .footer {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-logo {
+    height: 28px; /* Adjust this based on your actual logo's proportions */
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 4px;
+  }
+
+  .footer-brand {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-disclaimer {
+    font-size: 10px;
+    color: var(--faint);
+    margin: 0;
+    line-height: 1.4;
+    max-width: 300px;
+  }
+
+  @media (max-width: 360px) {
+    body {
+      padding: 18px 14px;
+    }
+    .chart-container {
+      height: 286px;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <main class="wrap">
+    <p class="eyebrow">Budget Overview</p>
+    <h1>Wedding Budget Breakdown</h1>
+
+    <section class="total-box" aria-label="Total wedding budget">
+      <div class="total-label">Total budget</div>
+      <div class="total-val" id="total-val">$0</div>
+    </section>
+
+    <div class="chart-container">
+      <canvas id="donut" role="img" aria-label="Donut chart showing wedding budget breakdown by category"></canvas>
+    </div>
+
+    <div class="status" id="status">Loading budget...</div>
+    <section class="breakdown" id="breakdown" aria-label="Budget categories"></section>
+
+    <button class="refresh" type="button" onclick="loadData()">Refresh</button>
+    <p class="note">Live estimate from your planning database.</p>
+
+    <!-- NEW: Branding & Disclaimer Footer -->
+    <footer class="footer">
+      <!-- REPLACE 'src' WITH YOUR ACTUAL LOGO URL OR FILE PATH -->
+      <img src="https://via.placeholder.com/120x28/f7f7f5/767676?text=YOUR+LOGO" alt="Company Logo" class="footer-logo">
+      
+      <!-- REPLACE WITH YOUR BRAND NAME -->
+      <p class="footer-brand">Arken Templates</p>
+      
+      <!-- REPLACE WITH YOUR DISCLAIMER -->
+      <p class="footer-disclaimer">© 2026 Arken Templates. All rights reserved.<br>Figures are estimates and subject to change.</p>
+    </footer>
+
+  </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const API_URL = "https://wedding-budget-api.vercel.app/api/get-budget";
+
+const PALETTE = {
+  "Ceremony Venue": "#A8B5A2", 
+  "Reception Venue": "#D9A5B3", 
+  "Catering": "#E5B59A",       
+  "Photography": "#BCA8C9",    
+  "Videography": "#A8B4D1",    
+  "Florals & Decor": "#AECFBD",
+  "DJ / Band": "#DFCB95",      
+  "Hair & Makeup": "#E3A79A",  
+  "Attire & Rings": "#D1C3B0", 
+  "Transportation": "#95A6B8", 
+  "Cake": "#F2E3D5",           
+  "Stationery": "#B8A9D1",     
+  "Rentals": "#9CBFB6",        
+  "Honeymoon": "#A0C7C7",      
+  "Rehearsal Dinner": "#CDA48F",
+  "Bachelor / Bachelorette": "#E8DDA6", 
+  "Bridal Party Gifts": "#C98F9D", 
+  "Miscellaneous": "#BDB8B0"   
+};
+
+const CATEGORY_ORDER = Object.keys(PALETTE);
+let currentTotal = 0;
+
+function money(value) {
+  return "$" + Math.round(value).toLocaleString();
+}
+
+function renderRows(items) {
+  const breakdown = document.getElementById("breakdown");
+  breakdown.innerHTML = "";
+
+  items.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "cat-row";
+    row.innerHTML = `
+      <span class="cat-swatch" style="background:${item.color}"></span>
+      <span class="cat-label" title="${item.label}">${item.label}</span>
+      <span class="cat-value">${money(item.value)}</span>
+    `;
+    breakdown.appendChild(row);
+  });
+}
+
+const ctx = document.getElementById('donut').getContext('2d');
+let chart;
+
+function initChart() {
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: CATEGORY_ORDER,
+      datasets: [{
+        data: new Array(CATEGORY_ORDER.length).fill(1),
+        backgroundColor: CATEGORY_ORDER.map(c => PALETTE[c] + '33'),
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 8,
+        hoverBorderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      animation: {
+        animateRotate: true,
+        animateScale: false
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(26, 26, 26, 0.95)',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          padding: 10,
+          cornerRadius: 6,
+          titleFont: { size: 11, weight: '500', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
+          bodyFont: { size: 11, weight: '500', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
+          displayColors: true,
+          boxWidth: 9,
+          boxHeight: 9,
+          boxPadding: 4,
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.raw || 0;
+              if (currentTotal === 0) return ` ${label}: $0 (0%)`;
+              const pct = Math.round((value / currentTotal) * 100);
+              return ` ${label}: ${money(value)} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateChart(items, total) {
+  currentTotal = total;
+  const hasData = total > 0;
+  
+  const dataMap = {};
+  items.forEach(item => {
+    dataMap[item.label] = item.value;
+  });
+
+  const chartData = CATEGORY_ORDER.map(cat => dataMap[cat] || 0);
+  
+  chart.data.datasets[0].data = hasData ? chartData : new Array(CATEGORY_ORDER.length).fill(1);
+  chart.data.datasets[0].backgroundColor = hasData
+    ? CATEGORY_ORDER.map(c => PALETTE[c])
+    : CATEGORY_ORDER.map(c => PALETTE[c] + '33');
+    
+  chart.update();
+}
+
+async function loadData() {
+  const status = document.getElementById("status");
+  status.textContent = "Loading budget...";
+
+  try {
+    const res = await fetch(API_URL + "?t=" + Date.now());
+
+    if (!res.ok) {
+      throw new Error("API returned " + res.status);
+    }
+
+    const data = await res.json();
+    const totals = data.totals || {};
+
+    const items = Object.entries(totals)
+      .map(([label, value]) => ({
+        label,
+        value: Number(value) || 0,
+        color: PALETTE[label] || "#BDB8B0"
+      }))
+      .filter(item => item.value > 0)
+      .sort((a, b) => b.value - a.value);
+
+    const total = items.reduce((sum, item) => sum + item.value, 0);
+
+    document.getElementById("total-val").textContent = money(total);
+    renderRows(items);
+    updateChart(items, total);
+
+    status.textContent = items.length ? "" : "No budget categories yet.";
+  } catch (err) {
+    console.error(err);
+    status.textContent = "Could not load budget.";
+    updateChart([], 0);
+  }
+}
+
+window.addEventListener("load", () => {
+  initChart();
+  loadData();
+});
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wedding Budget Estimate Overview - Arken Templates</title>
 <style>
   * {
