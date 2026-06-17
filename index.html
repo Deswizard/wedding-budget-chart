@@ -85,30 +85,29 @@
     position: relative;
   }
 
-  /* SVG Container */
   #donut-svg {
     width: 100%;
     height: 100%;
-    overflow: visible; /* Prevents scaled slices from being clipped */
+    overflow: visible; 
   }
 
-  /* Individual Slice Styling & Animation */
+  /* --- FIXED: Added transform-box to fix SVG scaling origin --- */
   .donut-slice {
     transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 300ms ease;
-    transform-origin: 100px 100px; /* Center of the SVG viewBox */
+    transform-box: fill-box; /* Tells the browser to scale relative to the slice itself */
+    transform-origin: center; /* Scales from the center of the slice's bounding box */
     cursor: pointer;
     outline: none;
   }
 
   .donut-slice:hover {
-    transform: scale(1.06); /* Swells slightly */
+    transform: scale(1.06); 
     filter: drop-shadow(0 8px 16px rgba(31, 29, 26, 0.25)) brightness(1.1);
   }
 
-  /* Custom Tooltip Styling */
   .tooltip {
     position: fixed;
-    pointer-events: none; /* Allows mouse events to pass through to the slice */
+    pointer-events: none; 
     background: rgba(26, 26, 26, 0.95);
     color: #fff;
     padding: 6px 10px;
@@ -118,7 +117,7 @@
     white-space: nowrap;
     opacity: 0;
     transition: opacity 150ms ease;
-    transform: translate(-50%, -140%); /* Centers above the cursor */
+    transform: translate(-50%, -140%); 
     z-index: 100;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     font-family: inherit;
@@ -219,7 +218,6 @@
 </head>
 
 <body>
-  <!-- Tooltip Element -->
   <div id="tooltip" class="tooltip"></div>
   
   <main class="wrap">
@@ -231,7 +229,6 @@
       <div class="total-val" id="total-val">$0</div>
     </section>
 
-    <!-- SVG Donut Chart -->
     <div class="chart-container">
       <svg id="donut-svg" viewBox="0 0 200 200" role="img" aria-label="Donut chart showing wedding budget breakdown by category"></svg>
     </div>
@@ -298,7 +295,6 @@ function renderRows(items) {
   });
 }
 
-// --- SVG Geometry Helpers ---
 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
   const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
   return {
@@ -324,12 +320,10 @@ function describeArc(x, y, outerRadius, startAngle, endAngle, innerRadius) {
   ].join(" ");
 }
 
-// --- Render Donut with SVG ---
 function renderDonut(items, total) {
   const svg = document.getElementById("donut-svg");
   svg.innerHTML = "";
 
-  // Empty state
   if (!items.length || total <= 0) {
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("cx", "100");
@@ -345,14 +339,13 @@ function renderDonut(items, total) {
   const cx = 100;
   const cy = 100;
   const outerR = 90;
-  const innerR = 68; // Thinner, more premium proportion
+  const innerR = 68; 
   const isSingleItem = items.length === 1;
 
   let currentAngle = 0;
 
   items.forEach(item => {
     const sliceAngle = (item.value / total) * 360;
-    // Cap at 359.99 to prevent SVG rendering bugs on full 360 circles
     const endAngle = currentAngle + (sliceAngle >= 360 ? 359.99 : sliceAngle);
 
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -360,19 +353,18 @@ function renderDonut(items, total) {
     path.setAttribute("fill", item.color);
     path.setAttribute("class", "donut-slice");
     
-    // Add a subtle white gap between slices (unless it's a single 100% slice)
     if (!isSingleItem) {
       path.setAttribute("stroke", "#ffffff");
       path.setAttribute("stroke-width", "1.5");
       path.setAttribute("stroke-linejoin", "round");
     }
 
-    // Accessibility title
     const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
     title.textContent = `${item.label}: ${money(item.value)}`;
     path.appendChild(title);
     
-    // Tooltip Events
+    // --- FIXED: Removed the svg.appendChild(path) from mouseenter ---
+    // This was breaking the mouseleave event and preventing the tooltip from fading!
     path.addEventListener("mousemove", (e) => {
       tooltip.textContent = `${item.label}: ${money(item.value)}`;
       tooltip.style.left = `${e.clientX}px`;
@@ -382,11 +374,6 @@ function renderDonut(items, total) {
     
     path.addEventListener("mouseleave", () => {
       tooltip.classList.remove("visible");
-    });
-
-    // Bring hovered slice to the front so its shadow isn't hidden
-    path.addEventListener("mouseenter", () => {
-      svg.appendChild(path);
     });
 
     svg.appendChild(path);
