@@ -95,9 +95,17 @@
 
   .breakdown {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 7px;
+    grid-template-columns: repeat(2, 1fr); /* Creates 2 equal, stretching columns */
+    gap: 8px;
     margin: 0 0 14px;
+  }
+
+  /* Optional but highly recommended: On very small phones, drop to 1 column 
+     so the text doesn't get squished too tightly */
+  @media (max-width: 380px) {
+    .breakdown {
+      grid-template-columns: 1fr;
+    }
   }
 
   .cat-row {
